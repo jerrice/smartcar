@@ -24,7 +24,7 @@ from homeassistant.util import dt as dt_util
 
 from .auth import AbstractAuth
 from .const import CONF_APPLICATION_MANAGEMENT_TOKEN, DOMAIN, EntityDescriptionKey
-from .util import key_path_get, key_path_update
+from .util import async_request_with_retry, key_path_get, key_path_update
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -649,7 +649,11 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
         )
 
         try:
-            response = await self.auth.request("post", request_path, json=request_body)
+            response = await async_request_with_retry(
+                lambda: self.auth.request("post", request_path, json=request_body),
+                logger=_LOGGER,
+                context=f"Coordinator {self.name}",
+            )
 
         # response errors here for responses that have actually completed, i.e.
         # 4xx responses are for errors related to requests made in the
@@ -665,6 +669,14 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
             }:
                 raise ConfigEntryAuthFailed from exception
             raise
+
+        if response.status in {
+            HTTPStatus.TOO_MANY_REQUESTS,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        }:
+            raise UpdateFailed(
+                f"API returned {response.status} after retries"
+            )
 
         response.raise_for_status()
         response_data = await response.json()
