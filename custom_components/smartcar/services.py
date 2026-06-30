@@ -96,7 +96,15 @@ async def _send_security_command(
         if description.key == EntityDescriptionKey.DOOR_LOCK
     )
 
-    if await async_send_command(coordinator, "/security", {"action": action}):
+    version = coordinator.auth.version
+    command = f"/security/{action.lower()}"
+    payload = None
+
+    if version == "v2":
+        command = "/security"
+        payload = {"action": action}
+
+    if await async_send_command(coordinator, command, payload):
         inject_raw_value(coordinator, description, value=action == "LOCK")
 
         entities: list[er.RegistryEntry] = er.async_entries_for_config_entry(

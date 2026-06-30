@@ -22,11 +22,19 @@ from pytest_homeassistant_custom_component.common import (
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 from syrupy.assertion import SnapshotAssertion
 
-from . import MOCK_API_ENDPOINT_LEGACY, setup_added_integration, setup_integration
+from custom_components.smartcar.types import APIVersion
+
+from . import (
+    MOCK_API_ENDPOINT,
+    MOCK_API_ENDPOINT_LEGACY,
+    setup_added_integration,
+    setup_integration,
+)
 
 NO_ERROR = None.__class__
 
 
+@pytest.mark.parametrize("client_id_version", ["v2", "v3"])
 @pytest.mark.parametrize(
     (
         "service_action",
@@ -60,20 +68,40 @@ async def test_switch(
     expected_state: str,
     expected_raises: Exception,
     api_calls: int,
+    client_id_version: APIVersion,
 ) -> None:
     """Test switching charging on/off."""
 
     await setup_integration(hass, mock_config_entry)
     assert len(aioclient_mock.mock_calls) == 1
 
-    aioclient_mock.post(
-        f"{MOCK_API_ENDPOINT_LEGACY}/vehicles/{vehicle['id']}/charge",
-        status=api_status,
-        json={
-            "message": "Some message related to the action unused by our code",
-            "status": api_status_slug,
-        },
-    )
+    if client_id_version == "v2":
+        aioclient_mock.post(
+            f"{MOCK_API_ENDPOINT_LEGACY}/vehicles/{vehicle['id']}/charge",
+            status=api_status,
+            json={
+                "message": "Some message related to the action unused by our code",
+                "status": api_status_slug,
+            },
+        )
+    else:
+        assert client_id_version == "v3"
+        aioclient_mock.post(
+            f"{MOCK_API_ENDPOINT}/vehicles/{vehicle['id']}/commands/charge/start",
+            status=api_status,
+            json={
+                "message": "Some message related to the action unused by our code",
+                "status": api_status_slug,
+            },
+        )
+        aioclient_mock.post(
+            f"{MOCK_API_ENDPOINT}/vehicles/{vehicle['id']}/commands/charge/stop",
+            status=api_status,
+            json={
+                "message": "Some message related to the action unused by our code",
+                "status": api_status_slug,
+            },
+        )
 
     try:
         await hass.services.async_call(

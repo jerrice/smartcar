@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_switch[unknown_make-turn_off-200-success-off-NoneType-1]
+# name: test_switch[unknown_make-turn_off-200-success-off-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -13,7 +13,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_off-401-unauthroized-off-NoneType-1]
+# name: test_switch[unknown_make-turn_off-200-success-off-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_off-401-unauthroized-off-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -27,7 +39,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_off-409-unreachable-off-NoneType-1]
+# name: test_switch[unknown_make-turn_off-401-unauthroized-off-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_off-409-unreachable-off-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -41,7 +65,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_off-500-server-off-NoneType-4]
+# name: test_switch[unknown_make-turn_off-409-unreachable-off-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_off-500-server-off-NoneType-4-v2]
   list([
     tuple(
       'post',
@@ -85,7 +121,43 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_off-503-unavailable-off-ClientResponseError-1]
+# name: test_switch[unknown_make-turn_off-500-server-off-NoneType-4-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_off-503-unavailable-off-ClientResponseError-1-v2]
   list([
     tuple(
       'post',
@@ -99,7 +171,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_on-200-success-on-NoneType-1]
+# name: test_switch[unknown_make-turn_off-503-unavailable-off-ClientResponseError-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/stop'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_on-200-success-on-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -113,7 +197,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_on-401-unauthroized-off-NoneType-1]
+# name: test_switch[unknown_make-turn_on-200-success-on-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/start'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_on-401-unauthroized-off-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -127,7 +223,19 @@
     ),
   ])
 # ---
-# name: test_switch[unknown_make-turn_on-409-unreachable-off-NoneType-1]
+# name: test_switch[unknown_make-turn_on-401-unauthroized-off-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/start'),
+      None,
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_on-409-unreachable-off-NoneType-1-v2]
   list([
     tuple(
       'post',
@@ -135,6 +243,18 @@
       dict({
         'action': 'START',
       }),
+      dict({
+        'authorization': 'Bearer mock-token',
+      }),
+    ),
+  ])
+# ---
+# name: test_switch[unknown_make-turn_on-409-unreachable-off-NoneType-1-v3]
+  list([
+    tuple(
+      'post',
+      URL('http://test.local/v3/vehicles/a1d50709-3502-4faa-ba43-a5c7565e6a09/commands/charge/start'),
+      None,
       dict({
         'authorization': 'Bearer mock-token',
       }),

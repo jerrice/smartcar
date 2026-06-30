@@ -60,7 +60,15 @@ class SmartcarChargingSwitch(SmartcarEntity[bool, bool], SwitchEntity):
         self,
         **kwargs,  # noqa: ARG002, ANN003
     ) -> None:
-        if await self._async_send_command("/charge", {"action": "START"}):
+        version = self.coordinator.auth.version
+        command = "/charge/start"
+        payload = None
+
+        if version == "v2":
+            command = "/charge"
+            payload = {"action": "START"}
+
+        if await self._async_send_command(command, payload):
             self._inject_raw_value(value=True)
             self.async_write_ha_state()
 
@@ -68,6 +76,14 @@ class SmartcarChargingSwitch(SmartcarEntity[bool, bool], SwitchEntity):
         self,
         **kwargs,  # noqa: ARG002, ANN003
     ) -> None:
-        if await self._async_send_command("/charge", {"action": "STOP"}):
+        version = self.coordinator.auth.version
+        command = "/charge/stop"
+        payload = None
+
+        if version == "v2":
+            command = "/charge"
+            payload = {"action": "STOP"}
+
+        if await self._async_send_command(command, payload):
             self._inject_raw_value(value=False)
             self.async_write_ha_state()

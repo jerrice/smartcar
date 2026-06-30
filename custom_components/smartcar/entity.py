@@ -157,7 +157,7 @@ class SmartcarEntity[ValueT, RawValueT](
     async def _async_send_command(
         self,
         subpath: str,
-        payload: dict[str, Any],
+        payload: dict[str, Any] | None,
         *,
         method: str = "post",
         **kwargs,  # noqa: ARG002, ANN003
@@ -266,18 +266,23 @@ def inject_raw_value[RawValueT](
 async def async_send_command(
     coordinator: SmartcarVehicleCoordinator,
     subpath: str,
-    payload: dict[str, Any],
+    payload: dict[str, Any] | None,
     *,
     method: str = "post",
 ) -> bool:
     _LOGGER.info("Sending %s request for %s", subpath, coordinator.vin)
     success = False
+    version = coordinator.auth.version
+
+    if version == "v3":
+        subpath = f"/commands{subpath}"
 
     try:
         resp = await util.async_request_with_retry(
-            lambda: coordinator.auth.request_v2(
+            lambda: coordinator.auth.request(
                 method,
                 f"vehicles/{coordinator.vehicle_id}{subpath}",
+                version=version,
                 json=payload,
             ),
             logger=_LOGGER,
