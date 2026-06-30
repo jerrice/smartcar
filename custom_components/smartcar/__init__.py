@@ -16,6 +16,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
     async_get_config_entry_implementation,
 )
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -130,6 +131,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     else:
         _LOGGER.debug("Webhooks are not enabled")
+
+    if auth.version == "v2":
+        async_create_issue(
+            hass,
+            DOMAIN,
+            f"legacy_client_id_{entry.entry_id}",
+            is_fixable=True,
+            is_persistent=True,
+            severity=IssueSeverity.WARNING,
+            translation_key="legacy_client_id",
+            translation_placeholders={
+                "title": entry.title,
+            },
+        )
 
     await asyncio.gather(
         *[async_do_first_refresh(coordinator) for coordinator in coordinators.values()]
