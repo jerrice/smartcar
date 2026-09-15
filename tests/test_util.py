@@ -7,12 +7,15 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.smartcar.util import (
+    api_version_for_client_id,
     async_request_with_retry,
     hmac_sha256_hexdigest,
     key_path_get,
     key_path_pop,
     key_path_transpose,
     key_path_update,
+    unique_id_from_entry_data,
+    vins_from_entry_data,
 )
 
 
@@ -21,6 +24,62 @@ def test_hmac_sha256_hexdigest():
         hmac_sha256_hexdigest("secret", "text")
         == "2f443685592900e619f2f3b2350c3c8a5738e2e7a26bc9a244d3393c3cd6abd6"
     )
+
+
+@pytest.mark.parametrize(
+    ("client_id", "expected_version"),
+    [
+        ("client_abc123", "v3"),
+        ("legacy-abc123", "v2"),
+    ],
+    ids=["client_prefix", "no_client_prefix"],
+)
+def test_api_version_for_client_id(client_id: str, expected_version: str):
+    assert api_version_for_client_id(client_id) == expected_version
+
+
+@pytest.mark.parametrize(
+    ("data", "expected_result"),
+    [
+        (
+            {"vehicles": {"cde456": {}, "abc123": {}}},
+            "abc123 cde456",
+        ),
+        (
+            {"vehicles": {"abc123": {}}},
+            "abc123",
+        ),
+    ],
+    ids=["multiple_vehicles", "single_vehicle"],
+)
+def test_unique_id_from_entry_data(data: dict[str, Any], expected_result: str):
+    assert unique_id_from_entry_data(data) == expected_result
+
+
+@pytest.mark.parametrize(
+    ("data", "expected_result"),
+    [
+        (
+            {"vehicles": {"v1": {"vin": "VIN002"}, "v2": {"vin": "VIN001"}}},
+            "VIN001 VIN002",
+        ),
+        (
+            {"vehicles": {"v1": {}}},
+            "",
+        ),
+        (
+            {"vehicles": {"v1": {"vin": ""}}},
+            "",
+        ),
+        (
+            {"vehicles": {"v1": {"vin": None}}},
+            "",
+        ),
+    ],
+    ids=["multiple_vins", "missing_vin_key", "empty_vin", "none_vin"],
+)
+def test_vins_from_entry_data(data: dict[str, Any], expected_result: str):
+    assert vins_from_entry_data(data) == expected_result
 
 
 @pytest.mark.parametrize(
