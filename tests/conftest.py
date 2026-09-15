@@ -43,6 +43,7 @@ from custom_components.smartcar.types import APIVersion
 from custom_components.smartcar.auth import AbstractAuth
 from custom_components.smartcar.const import (
     CONF_APPLICATION_MANAGEMENT_TOKEN,
+    CONF_DISABLE_POLLING,
     DOMAIN,
     EntityDescriptionKey,
     Scope,
@@ -426,6 +427,7 @@ def webhook_scenario(
                 **mock_config_entry.data,
                 CONF_WEBHOOK_ID: "smartcar_test",
                 CONF_APPLICATION_MANAGEMENT_TOKEN: "test_amt",
+                CONF_DISABLE_POLLING: True,
             },
         )
 
@@ -438,8 +440,9 @@ def webhook_scenario(
         with patch("custom_components.smartcar.PLATFORMS", [platform]):
             await setup_added_integration(hass, mock_config_entry)
 
-        # no requests should have been made during setup when webhooks are enabled
-        # because this automatically disables polling.
+        # no requests should have been made during setup: these scenarios test
+        # webhook-driven updates in isolation, so polling is explicitly disabled
+        # above rather than relying on it being off by default.
         assert aioclient_mock.call_count == expected_calls
 
         with patch(

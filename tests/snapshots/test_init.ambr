@@ -9047,8 +9047,6 @@
 # name: test_standard_setup_with_all_entities[unknown_make-v3][sensor.smartcar_784n_engine_oil_life]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'age': '2025-09-18T23:30:33+00:00',
-      'fetched_at': '2025-09-18T23:39:43.086000+00:00',
       'friendly_name': 'Smartcar 784N Engine Oil Life',
       'icon': 'mdi:oil-level',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
@@ -9151,8 +9149,6 @@
 # name: test_standard_setup_with_all_entities[unknown_make-v3][sensor.smartcar_784n_fuel_percent]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'age': '2025-09-18T23:30:33+00:00',
-      'fetched_at': '2025-09-18T23:39:43.086000+00:00',
       'friendly_name': 'Smartcar 784N Fuel Percent',
       'icon': 'mdi:gas-station',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,

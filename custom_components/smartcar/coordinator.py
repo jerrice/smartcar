@@ -840,7 +840,9 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
         """
         with self.create_updated_data() as (add, updated_data):
             for signal in signal_data.get("data", []):
-                add.from_signal_attributes(signal.get("attributes", {}))
+                add.from_signal_attributes(
+                    {**signal.get("attributes", {}), "meta": signal.get("meta", {})}
+                )
 
             _LOGGER.debug("Coordinator %s: Signal polling update processed", self.name)
 
@@ -899,10 +901,8 @@ class _DataAdder:
                 else None
             )
 
-            if data_age:
-                data_age = dt_util.utc_from_timestamp(data_age / 1000)
-            if fetched_at:
-                fetched_at = dt_util.utc_from_timestamp(fetched_at / 1000)
+            data_age = _parse_signal_timestamp(data_age)
+            fetched_at = _parse_signal_timestamp(fetched_at)
 
             self.from_response_body(
                 code,
@@ -1041,6 +1041,23 @@ class _DataAdder:
                 self.data[f"{storage_key}:fetched_at"] = fetched_at
             elif can_clear:
                 self.data.pop(f"{storage_key}:fetched_at", None)
+
+
+def _parse_signal_timestamp(value: Any) -> dt.datetime | None:  # noqa: ANN401
+    """Parse a signal metadata timestamp (epoch milliseconds or ISO 8601).
+
+    Returns:
+        The parsed UTC datetime, or None if absent or unparsable.
+    """
+    if not value:
+        return None
+    if isinstance(value, str):
+        parsed = dt_util.parse_datetime(value)
+        return dt_util.as_utc(parsed) if parsed else None
+    try:
+        return dt_util.utc_from_timestamp(value / 1000)
+    except (TypeError, ValueError, OSError):
+        return None
 
 
 def _is_integrated(signal: dict) -> bool:

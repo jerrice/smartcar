@@ -470,6 +470,8 @@ async def _test_full_flow(
         assert dict(config_entry.data) == {
             "application_id": "my-app-id",
             "auth_implementation": "smartcar",
+            "disable_polling": False,
+            "skip_browser_auth": False,
             "token": dict(
                 server_access_token,
                 scopes=requested_scopes,
@@ -1200,6 +1202,8 @@ async def test_reconfigure(
     token = compare_entry_data.pop("token")
     compare_entry_data.pop("auth_implementation", None)
     compare_entry_data.pop("vehicles", None)
+    compare_entry_data.pop("disable_polling", None)
+    compare_entry_data.pop("skip_browser_auth", None)
 
     # verify access token is refreshed
     assert token["access_token"] == expected_access_token
@@ -1352,6 +1356,8 @@ async def test_options_flow(
         compare_entry_data.pop("auth_implementation", None)
         compare_entry_data.pop("token", None)
         compare_entry_data.pop("vehicles", None)
+        compare_entry_data.pop("disable_polling", None)
+        compare_entry_data.pop("skip_browser_auth", None)
 
         if expected_errors is not None:
             assert result["type"] is expected_form_type
