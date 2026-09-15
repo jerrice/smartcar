@@ -7,7 +7,6 @@ from typing import Any, Literal, Self
 
 from aiohttp import ClientResponseError
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.restore_state import (
     ExtraStoredData,
@@ -166,23 +165,13 @@ class SmartcarEntity[ValueT, RawValueT](
         *,
         method: str = "post",
         **kwargs,  # noqa: ARG002, ANN003
-    ) -> None:
+    ) -> bool:
         try:
-            success = await async_send_command(
+            return await async_send_command(
                 self.coordinator, subpath, payload, method=method
             )
-        except SmartcarAPIError as err:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="command_failed",
-                translation_placeholders={"status": str(err.code)},
-            ) from err
-
-        if not success:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="command_authentication_failed",
-            )
+        except SmartcarAPIError:
+            return False
 
 
 class IndirectDescriptorDefaultType(Enum):

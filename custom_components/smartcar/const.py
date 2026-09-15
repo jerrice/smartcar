@@ -25,6 +25,15 @@ SMARTCAR_MODE = "live"
 
 CONF_APPLICATION_ID = "application_id"
 CONF_APPLICATION_MANAGEMENT_TOKEN = "application_management_token"  # noqa: S105
+# Explicitly disables all polling (independent of webhooks being configured).
+# Previously, merely configuring webhooks disabled polling entirely; that's
+# no longer the case for v3 apps, since v3 polling is a single API call
+# regardless of how many entities are involved, making it cheap enough to
+# run alongside webhooks as a backstop/fallback.
+CONF_DISABLE_POLLING = "disable_polling"
+# Optional custom polling interval, in hours. Falls back to the 6 hour
+# default if unset.
+CONF_POLL_INTERVAL_HOURS = "poll_interval_hours"
 CONF_CLOUDHOOK = "cloudhook"
 
 

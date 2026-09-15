@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import logging
+import time
 from typing import Any, cast
 
 from aiohttp import ClientConnectorError, ClientError
@@ -29,12 +30,15 @@ from homeassistant.helpers.selector import (
 import voluptuous as vol
 
 from . import populate_entry_data, vehicle_vins_in_use
+from .application_credentials import SmartcarAuthImplementation
 from .auth_impl import AccessTokenAuthImpl
 from .const import (
     API_ENDPOINTS,
     CONF_APPLICATION_ID,
     CONF_APPLICATION_MANAGEMENT_TOKEN,
     CONF_CLOUDHOOK,
+    CONF_DISABLE_POLLING,
+    CONF_POLL_INTERVAL_HOURS,
     CONFIGURABLE_SCOPES,
     DEFAULT_NAME,
     DEFAULT_SCOPES,
@@ -58,6 +62,13 @@ from .webhooks import webhook_url_from_id
 _LOGGER = logging.getLogger(__name__)
 
 CONF_USE_WEBHOOKS = "use_webhooks"
+# Allows skipping Smartcar Connect's browser-based authorization step for v3
+# applications. Some brands (e.g. BMW/MINI) currently block web-based Connect
+# outside the EU; if a vehicle has already been authorized to this
+# application through another means (e.g. Smartcar's mobile SDK), this skips
+# straight to a client_credentials exchange and lets GET /v3/connections
+# auto-discover the already-authorized vehicle/user.
+CONF_SKIP_BROWSER_AUTH = "skip_browser_auth"
 
 GENERAL_CONFIGURATION_SCHEMA = {
     vol.Optional(CONF_APPLICATION_ID): TextSelector(
@@ -66,7 +77,16 @@ GENERAL_CONFIGURATION_SCHEMA = {
     vol.Optional(CONF_APPLICATION_MANAGEMENT_TOKEN): TextSelector(
         config=TextSelectorConfig(type=TextSelectorType.TEXT)
     ),
+    vol.Required(CONF_SKIP_BROWSER_AUTH, default=False): bool,
     vol.Required(CONF_USE_WEBHOOKS, default=True): bool,
+    # Polling now runs independently of webhooks (previously, configuring
+    # webhooks disabled polling entirely). Leave blank for the 6 hour
+    # default, or set a custom interval - v3 apps make this cheap (1 API
+    # call per poll covers every entity, regardless of how many groups).
+    vol.Optional(CONF_POLL_INTERVAL_HOURS): vol.All(
+        vol.Coerce(int), vol.Range(min=1, max=24)
+    ),
+    vol.Required(CONF_DISABLE_POLLING, default=False): bool,
 }
 BASE_DESCRIPTION_PLACEHOLDERS = {
     "webhook_url": "webhooks-not-enabled",
@@ -273,7 +293,39 @@ class SmartcarOAuth2FlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):  # ty
                 return await self.async_step_scopes()
         elif self.entry_data is None:
             return await self.async_step_webhooks()
+
+        assert self.entry_data is not None
+
+        if self.entry_data.get(
+            CONF_SKIP_BROWSER_AUTH
+        ) and api_version_for_client_id(self.flow_impl.client_id) == "v3":
+            return await self._async_manual_create_entry()
+
         return await super().async_step_auth(user_input)
+
+    async def _async_manual_create_entry(self) -> ConfigFlowResult:
+        """Create the entry via a direct client_credentials exchange.
+
+        Bypasses Smartcar Connect's browser-based login, which is currently
+        unavailable for some brands (e.g. BMW/MINI) outside the EU. Assumes
+        the vehicle has already been authorized to this application through
+        some other means (e.g. the Smartcar mobile SDK); the vehicle and its
+        user are auto-discovered afterward via GET /v3/connections in
+        populate_entry_data.
+        """
+        assert isinstance(self.flow_impl, SmartcarAuthImplementation)
+        assert self.entry_data is not None
+
+        token_data = await self.flow_impl._token_request({})  # noqa: SLF001
+        token_data.setdefault("token_type", "Bearer")
+        token_data["expires_at"] = time.time() + token_data.get("expires_in", 7200)
+
+        entry_data = {**self.entry_data}
+        entry_data.pop(CONF_SKIP_BROWSER_AUTH, None)
+        self.entry_data = entry_data
+
+        data = {CONF_TOKEN: token_data, "auth_implementation": self.flow_impl.domain}
+        return await self.async_oauth_create_entry(data)
 
     async def async_step_reconfigure(
         self,

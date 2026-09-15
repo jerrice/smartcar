@@ -47,12 +47,18 @@
         "data": {
           "application_id": "Application ID",
           "application_management_token": "Application Management Token",
-          "use_webhooks": "Use webhooks"
+          "use_webhooks": "Use webhooks",
+          "skip_browser_auth": "Skip browser-based Connect authorization",
+          "poll_interval_hours": "Polling interval (hours)",
+          "disable_polling": "Disable polling entirely"
         },
         "data_description": {
           "application_id": "Required for new Smartcar accounts and for v3.",
           "application_management_token": "Only provide if using webhooks. This is the _Application Management Token_ from your [Smartcar account]({smartcar_url}) to use webhooks.\n\nSee [the documentation]({docs_url}) for further details.",
-          "use_webhooks": "Webhooks are Smartcar's preferred data update delivery method."
+          "use_webhooks": "Webhooks are Smartcar's preferred data update delivery method.",
+          "skip_browser_auth": "Advanced/workaround option. Enable only if your vehicle has already been authorized to this Smartcar application through another method (e.g. the Smartcar mobile SDK) \u2014 for example, because your vehicle brand currently blocks Smartcar Connect's browser-based login outside the EU (this currently affects BMW/MINI). When enabled, setup skips the browser login step entirely and automatically discovers the already-authorized vehicle. Leave unchecked for normal setup.",
+          "poll_interval_hours": "How often to poll for updates, independent of webhooks. Leave blank for the default (6 hours). For v3 applications, one poll costs a single API call regardless of how many entities are enabled, so shorter intervals (e.g. 2 hours) are generally safe on the free tier (500 calls/month) - budget roughly (24/interval) x 30 calls/month.",
+          "disable_polling": "Only enable this if you're relying entirely on webhooks and are confident every signal you need is actually being pushed. Most users should leave this unchecked - polling is cheap for v3 apps and acts as a useful backstop for signals your webhook configuration doesn't cover."
         },
         "description": "To configure Smartcar, provide an _Application ID_. An _Application Management Token_ is also required if enabling webhooks.",
         "title": "Smartcar configuration"
@@ -76,12 +82,6 @@
     }
   },
   "exceptions": {
-    "command_failed": {
-      "message": "The Smartcar vehicle command failed (HTTP {status})."
-    },
-    "command_authentication_failed": {
-      "message": "The Smartcar vehicle command failed because authentication is required. Reauthenticate the Smartcar integration and try again."
-    },
     "batch_update_error": {
       "message": "An error occurred while retrieving vehicle state from the Smartcar API: {error}"
     }
@@ -112,10 +112,18 @@
       "webhooks": {
         "data": {
           "use_webhooks": "Use webhooks",
-          "application_management_token": "Token: only provide if using webhooks"
+          "application_management_token": "Token: only provide if using webhooks",
+          "skip_browser_auth": "Skip browser-based Connect authorization",
+          "poll_interval_hours": "Polling interval (hours)",
+          "disable_polling": "Disable polling entirely"
         },
         "description": "Provide your _Application Management Token_ from your [Smartcar account]({smartcar_url}) to use webhooks.\n\nTo send events to Home Assistant, you will need to set up a [webhook with Smartcar]({smartcar_url}). Use the following URL:\n\n`{webhook_url}`\n\nIf the above URL indicates that webhooks are not enabled, revisit this configuration screen after completing the setup to get the URL.\n\nSee [the documentation]({docs_url}) for further details.",
-        "title": "Smartcar configuration"
+        "title": "Smartcar configuration",
+        "data_description": {
+          "skip_browser_auth": "Advanced/workaround option. Enable only if your vehicle has already been authorized to this Smartcar application through another method (e.g. the Smartcar mobile SDK) \u2014 for example, because your vehicle brand currently blocks Smartcar Connect's browser-based login outside the EU (this currently affects BMW/MINI). When enabled, setup skips the browser login step entirely and automatically discovers the already-authorized vehicle. Leave unchecked for normal setup.",
+          "poll_interval_hours": "How often to poll for updates, independent of webhooks. Leave blank for the default (6 hours). For v3 applications, one poll costs a single API call regardless of how many entities are enabled, so shorter intervals (e.g. 2 hours) are generally safe on the free tier (500 calls/month) - budget roughly (24/interval) x 30 calls/month.",
+          "disable_polling": "Only enable this if you're relying entirely on webhooks and are confident every signal you need is actually being pushed. Most users should leave this unchecked - polling is cheap for v3 apps and acts as a useful backstop for signals your webhook configuration doesn't cover."
+        }
       }
     }
   },

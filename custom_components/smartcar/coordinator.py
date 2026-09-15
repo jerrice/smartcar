@@ -25,7 +25,12 @@ from homeassistant.util import dt as dt_util
 
 from . import util
 from .auth import AbstractAuth
-from .const import CONF_APPLICATION_MANAGEMENT_TOKEN, DOMAIN, EntityDescriptionKey
+from .const import (
+    CONF_DISABLE_POLLING,
+    CONF_POLL_INTERVAL_HOURS,
+    DOMAIN,
+    EntityDescriptionKey,
+)
 from .types import APIVersion
 from .util import key_path_get, key_path_update
 
@@ -46,7 +51,7 @@ VEHICLE_BACK_ROW = 1
 VEHICLE_LEFT_COLUMN = 0
 VEHICLE_RIGHT_COLUMN = 1
 
-UPDATE_INTERVAL = timedelta(hours=6)
+DEFAULT_UPDATE_INTERVAL = timedelta(hours=6)
 
 # Signal error conditions that are structural or otherwise expected for a given
 # vehicle and therefore recur on every update (e.g. a vehicle that is simply not
@@ -583,13 +588,19 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
         self.batch_requests: set[EntityDescriptionKey] = set()
         self.data: dict[str, Any] = {}
 
+        poll_hours = entry.data.get(CONF_POLL_INTERVAL_HOURS)
+        if entry.data.get(CONF_DISABLE_POLLING):
+            update_interval = None
+        elif poll_hours:
+            update_interval = timedelta(hours=poll_hours)
+        else:
+            update_interval = DEFAULT_UPDATE_INTERVAL
+
         super().__init__(
             hass,
             _LOGGER,
             name=f"{DOMAIN}_{vehicle_id}",
-            update_interval=UPDATE_INTERVAL
-            if CONF_APPLICATION_MANAGEMENT_TOKEN not in entry.data
-            else None,
+            update_interval=update_interval,
         )
 
     def is_scope_enabled(
@@ -644,9 +655,8 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
         """
         if self.batch_requests:
             return
-        if (
-            self.config_entry.pref_disable_polling
-            or CONF_APPLICATION_MANAGEMENT_TOKEN in self.config_entry.data
+        if self.config_entry.pref_disable_polling or self.config_entry.data.get(
+            CONF_DISABLE_POLLING
         ):
             return
 
@@ -830,16 +840,7 @@ class SmartcarVehicleCoordinator(DataUpdateCoordinator):
         """
         with self.create_updated_data() as (add, updated_data):
             for signal in signal_data.get("data", []):
-                attributes = signal.get("attributes", {})
-                add.from_signal_attributes(
-                    {
-                        **attributes,
-                        "meta": {
-                            **attributes.get("meta", {}),
-                            **signal.get("meta", {}),
-                        },
-                    }
-                )
+                add.from_signal_attributes(signal.get("attributes", {}))
 
             _LOGGER.debug("Coordinator %s: Signal polling update processed", self.name)
 
@@ -898,8 +899,10 @@ class _DataAdder:
                 else None
             )
 
-            data_age = _parse_signal_timestamp(data_age)
-            fetched_at = _parse_signal_timestamp(fetched_at)
+            if data_age:
+                data_age = dt_util.utc_from_timestamp(data_age / 1000)
+            if fetched_at:
+                fetched_at = dt_util.utc_from_timestamp(fetched_at / 1000)
 
             self.from_response_body(
                 code,
@@ -1038,20 +1041,6 @@ class _DataAdder:
                 self.data[f"{storage_key}:fetched_at"] = fetched_at
             elif can_clear:
                 self.data.pop(f"{storage_key}:fetched_at", None)
-
-
-def _parse_signal_timestamp(value: str | float | None) -> dt.datetime | None:
-    """Parse ISO timestamps from polling or epoch milliseconds from webhooks.
-
-    Returns:
-        The signal timestamp, or None when unavailable or an invalid ISO string.
-    """
-    timestamp: dt.datetime | None = None
-    if isinstance(value, str):
-        timestamp = dt_util.parse_datetime(value)
-    elif value:
-        timestamp = dt_util.utc_from_timestamp(value / 1000)
-    return timestamp
 
 
 def _is_integrated(signal: dict) -> bool:
