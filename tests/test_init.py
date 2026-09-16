@@ -610,9 +610,17 @@ def snapshot_order(entity):
     [
         ("VEHICLE_STATE", "NOT_CHARGING", logging.DEBUG),
         ("COMPATIBILITY", "VEHICLE_NOT_CAPABLE", logging.DEBUG),
+        ("UPSTREAM", "KNOWN_ISSUE", logging.DEBUG),
+        ("PERMISSION", "UNKNOWN", logging.DEBUG),
         ("PERMISSION", None, logging.ERROR),
     ],
-    ids=["not_charging", "not_capable", "genuine_error"],
+    ids=[
+        "not_charging",
+        "not_capable",
+        "known_issue",
+        "permission_unknown",
+        "genuine_error",
+    ],
 )
 def test_webhook_signal_error_log_level(
     caplog: pytest.LogCaptureFixture,

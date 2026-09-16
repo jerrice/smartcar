@@ -62,6 +62,8 @@ _BENIGN_SIGNAL_ERRORS: frozenset[tuple[str | None, str | None]] = frozenset(
     {
         ("COMPATIBILITY", "VEHICLE_NOT_CAPABLE"),
         ("VEHICLE_STATE", "NOT_CHARGING"),
+        ("UPSTREAM", "KNOWN_ISSUE"),
+        ("PERMISSION", "UNKNOWN"),
     }
 )
 
