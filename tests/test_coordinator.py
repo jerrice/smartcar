@@ -45,6 +45,7 @@ async def test_v3_polling_preserves_signal_metadata(
         (0, None),
         (None, None),
         ("not-a-timestamp", None),
+        (1e27, None),
     ],
     ids=[
         "iso-utc",
@@ -54,6 +55,7 @@ async def test_v3_polling_preserves_signal_metadata(
         "zero-unavailable",
         "missing",
         "invalid",
+        "out-of-range",
     ],
 )
 def test_signal_timestamps(timestamp, expected: dt.datetime | None) -> None:

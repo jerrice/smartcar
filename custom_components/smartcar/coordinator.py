@@ -1058,7 +1058,7 @@ def _parse_signal_timestamp(value: Any) -> dt.datetime | None:  # noqa: ANN401
         return dt_util.as_utc(parsed) if parsed else None
     try:
         return dt_util.utc_from_timestamp(value / 1000)
-    except (TypeError, ValueError, OSError):
+    except (TypeError, ValueError, OSError, OverflowError):
         return None
 
 
